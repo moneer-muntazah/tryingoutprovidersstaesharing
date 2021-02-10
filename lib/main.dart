@@ -2,19 +2,27 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class User extends ChangeNotifier {
+class Credentials {
   String token = 'initial token';
+}
 
-  void setToken(String t) {
+class User extends ChangeNotifier {
+  Credentials token = Credentials();
+
+  void setToken(Credentials t) {
     token = t;
     notifyListeners();
   }
 }
 
+typedef ReadUser = User Function();
+
 class HttpService {
-  static void init(User user) {
-    _singleton.user = user;
-  }
+  static void init(ReadUser read) => _singleton.read = read;
+
+  // static void init(User user) {
+  //   _singleton.user = user;
+  // }
 
   static final _singleton = HttpService._();
 
@@ -22,7 +30,8 @@ class HttpService {
 
   factory HttpService() => _singleton;
 
-  User user;
+  // User user;
+  ReadUser read;
 }
 
 void main() {
@@ -41,7 +50,6 @@ class MyApp extends StatelessWidget {
       home: ChangeNotifierProvider<User>(
         create: (context) {
           final user = User();
-          HttpService.init(user);
           return user;
         },
         child: MyHomePage(),
@@ -50,9 +58,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   final random = Random();
+
   final chars = <String>['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'];
+
+  @override
+  void initState() {
+    super.initState();
+    HttpService.init(context.read);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +85,7 @@ class MyHomePage extends StatelessWidget {
             const SizedBox(height: 20),
             Consumer<User>(
               builder: (context, user, child) {
-                return Text(user.token);
+                return Text(user.token.token);
               },
             ),
             const SizedBox(height: 20),
@@ -73,19 +93,19 @@ class MyHomePage extends StatelessWidget {
               onPressed: () {
                 var c = chars[random.nextInt(chars.length - 1)];
                 var newToken = c + c + c + c;
-                final currentToken = context.read<User>().token;
+                final currentToken = context.read<User>().token.token;
                 while (newToken == currentToken) {
                   c = chars[random.nextInt(chars.length - 1)];
                   newToken = c + c + c + c;
                 }
-                context.read<User>().setToken(newToken);
+                context.read<User>().setToken(Credentials()..token = newToken);
               },
               child: Text('change token'),
             ),
             const SizedBox(height: 20),
             RaisedButton(
               onPressed: () {
-                print(HttpService().user.token);
+                print(HttpService().read().token.token);
               },
               child: Text('print token'),
             )
