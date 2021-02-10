@@ -13,16 +13,21 @@ class User extends ChangeNotifier {
     credentials = t;
     notifyListeners();
   }
+
+  String getToken() => credentials.token;
 }
 
 //typedef ReadUser = User Function();
+typedef GetToken = String Function();
 
 class HttpService {
+  static void setGetToken(GetToken getToken) => _singleton.getToken = getToken;
+
   // static void init(ReadUser read) => _singleton.read = read;
 
-  static void init(User user) {
-    _singleton.user = user;
-  }
+  // static void init(User user) {
+  //   _singleton.user = user;
+  // }
 
   static final _singleton = HttpService._();
 
@@ -30,8 +35,9 @@ class HttpService {
 
   factory HttpService() => _singleton;
 
-  User user;
+  // User user;
 //ReadUser read;
+  GetToken getToken;
 }
 
 void main() {
@@ -50,7 +56,7 @@ class MyApp extends StatelessWidget {
       home: ChangeNotifierProvider<User>(
         create: (context) {
           final user = User();
-          HttpService.init(user);
+          HttpService.setGetToken(user.getToken);
           return user;
         },
         child: MyHomePage(),
@@ -105,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             RaisedButton(
               onPressed: () {
-                print(HttpService().user.credentials.token);
+                print(HttpService().getToken());
               },
               child: Text('print token'),
             )
