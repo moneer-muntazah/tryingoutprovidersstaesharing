@@ -7,22 +7,22 @@ class Credentials {
 }
 
 class User extends ChangeNotifier {
-  Credentials token = Credentials();
+  Credentials credentials = Credentials();
 
   void setToken(Credentials t) {
-    token = t;
+    credentials = t;
     notifyListeners();
   }
 }
 
-typedef ReadUser = User Function();
+//typedef ReadUser = User Function();
 
 class HttpService {
-  static void init(ReadUser read) => _singleton.read = read;
+  // static void init(ReadUser read) => _singleton.read = read;
 
-  // static void init(User user) {
-  //   _singleton.user = user;
-  // }
+  static void init(User user) {
+    _singleton.user = user;
+  }
 
   static final _singleton = HttpService._();
 
@@ -30,8 +30,8 @@ class HttpService {
 
   factory HttpService() => _singleton;
 
-  // User user;
-  ReadUser read;
+  User user;
+//ReadUser read;
 }
 
 void main() {
@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
       home: ChangeNotifierProvider<User>(
         create: (context) {
           final user = User();
+          HttpService.init(user);
           return user;
         },
         child: MyHomePage(),
@@ -71,7 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    HttpService.init(context.read);
   }
 
   @override
@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             Consumer<User>(
               builder: (context, user, child) {
-                return Text(user.token.token);
+                return Text(user.credentials.token);
               },
             ),
             const SizedBox(height: 20),
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 var c = chars[random.nextInt(chars.length - 1)];
                 var newToken = c + c + c + c;
-                final currentToken = context.read<User>().token.token;
+                final currentToken = context.read<User>().credentials.token;
                 while (newToken == currentToken) {
                   c = chars[random.nextInt(chars.length - 1)];
                   newToken = c + c + c + c;
@@ -105,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             RaisedButton(
               onPressed: () {
-                print(HttpService().read().token.token);
+                print(HttpService().user.credentials.token);
               },
               child: Text('print token'),
             )
